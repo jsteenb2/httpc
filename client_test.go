@@ -23,10 +23,7 @@ func TestClient_Req(t *testing.T) {
 			for _, method := range methods {
 				for _, status := range tests {
 					fn := func(t *testing.T) {
-						doer := new(fakeDoer)
-						doer.doFn = func(req *http.Request) (*http.Response, error) {
-							return stubResp(status), nil
-						}
+						doer := newHappyDoer(status)
 
 						client := httpc.New(doer)
 
@@ -457,10 +454,7 @@ func TestClient_Req(t *testing.T) {
 
 	t.Run("headers", func(t *testing.T) {
 		t.Run("client headers set on req", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			var opts []httpc.ClientOptFn
 			for i := 'A'; i <= 'Z'; i++ {
@@ -484,10 +478,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("request header overwrites a client header", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer, httpc.WithHeader("key", "value"))
 
@@ -506,10 +497,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("non duplicates", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer)
 
@@ -534,10 +522,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("duplicate entries last entry wins", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer)
 
@@ -555,14 +540,30 @@ func TestClient_Req(t *testing.T) {
 
 			equals(t, "val2", headers.Get("dupe"))
 		})
+
+		t.Run("setting multiple headers at once", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Get("/foo").
+				Headers("dupe", "val1", "dupe", "val2").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			equals(t, "val2", headers.Get("dupe"))
+		})
 	})
 
 	t.Run("sets content type", func(t *testing.T) {
 		t.Run("on client", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer, httpc.WithContentType("application/json"))
 
@@ -580,10 +581,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("on request", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer)
 
@@ -602,10 +600,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("request overwrite client content type", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer, httpc.WithContentType("text/html"))
 
@@ -626,10 +621,7 @@ func TestClient_Req(t *testing.T) {
 
 	t.Run("not found", func(t *testing.T) {
 		t.Run("sets not found", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusNotFound), nil
-			}
+			doer := newHappyDoer(http.StatusNotFound)
 
 			client := httpc.New(doer)
 
@@ -644,10 +636,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("does not set not found", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusUnprocessableEntity), nil
-			}
+			doer := newHappyDoer(http.StatusUnprocessableEntity)
 
 			client := httpc.New(doer)
 
@@ -664,10 +653,7 @@ func TestClient_Req(t *testing.T) {
 
 	t.Run("exists", func(t *testing.T) {
 		t.Run("sets exist", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusUnprocessableEntity), nil
-			}
+			doer := newHappyDoer(http.StatusUnprocessableEntity)
 
 			client := httpc.New(doer)
 
@@ -682,10 +668,7 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("does not set exist", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusNotFound), nil
-			}
+			doer := newHappyDoer(http.StatusNotFound)
 
 			client := httpc.New(doer)
 

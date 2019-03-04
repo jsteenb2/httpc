@@ -89,7 +89,25 @@ func (r *Request) Header(key, value string) *Request {
 	return r
 }
 
-// OnError provides a decode hook to decode a responses body.
+// Headers allows a user to set multiple query params at one time. Following
+// the same rules as Header. If a key is provided without a value, it will
+// not be added to the request. If it is desired, pass in "" to add a header
+// with no value.
+func (r *Request) Headers(key, value string, pairs ...string) *Request {
+	hReq := r.Header(key, value)
+	for index := 0; index < len(pairs)/2; index++ {
+		i := index * 2
+		pair := pairs[i : i+2]
+		if len(pair) != 2 {
+			return hReq
+		}
+		hReq = r.Header(pair[0], pair[1])
+	}
+	return hReq
+}
+
+// OnError provides a decode hook to decode a responses body. Applied
+// when the response's status code does not match the expected.
 func (r *Request) OnError(fn DecodeFn) *Request {
 	r.onErrorFn = fn
 	return r
@@ -113,7 +131,7 @@ func (r *Request) QueryParam(key, value string) *Request {
 // QueryParams allows a user to set multiple query params at one time. Following
 // the same rules as QueryParam. If a key is provided without a value, it will
 // not be added to the request. If it is desired, pass in "" to add a query param
-// with no string field.
+// with no value.
 func (r *Request) QueryParams(key, value string, pairs ...string) *Request {
 	paramed := r.QueryParam(key, value)
 	for index := 0; index < len(pairs)/2; index++ {
