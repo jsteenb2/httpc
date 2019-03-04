@@ -497,6 +497,73 @@ func TestClient_Req(t *testing.T) {
 		})
 	})
 
+	t.Run("sets content type", func(t *testing.T) {
+		t.Run("on client", func(t *testing.T) {
+			doer := new(fakeDoer)
+			doer.doFn = func(req *http.Request) (*http.Response, error) {
+				return stubResp(http.StatusOK), nil
+			}
+
+			client := httpc.New(doer, httpc.WithContentType("application/json"))
+
+			err := client.
+				GET("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			equals(t, "application/json", headers.Get("Content-Type"))
+		})
+
+		t.Run("on request", func(t *testing.T) {
+			doer := new(fakeDoer)
+			doer.doFn = func(req *http.Request) (*http.Response, error) {
+				return stubResp(http.StatusOK), nil
+			}
+
+			client := httpc.New(doer)
+
+			err := client.
+				GET("/foo").
+				ContentType("application/json").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			equals(t, "application/json", headers.Get("Content-Type"))
+		})
+
+		t.Run("request overwrite client content type", func(t *testing.T) {
+			doer := new(fakeDoer)
+			doer.doFn = func(req *http.Request) (*http.Response, error) {
+				return stubResp(http.StatusOK), nil
+			}
+
+			client := httpc.New(doer, httpc.WithContentType("text/html"))
+
+			err := client.
+				GET("/foo").
+				ContentType("application/json").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			equals(t, "application/json", headers.Get("Content-Type"))
+		})
+	})
+
 	t.Run("not found", func(t *testing.T) {
 		t.Run("sets not found", func(t *testing.T) {
 			doer := new(fakeDoer)

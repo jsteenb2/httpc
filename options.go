@@ -30,6 +30,14 @@ func WithBaseURL(baseURL string) ClientOptFn {
 	}
 }
 
+// WithContentType sets content type that will be applied to all requests.
+func WithContentType(cType string) ClientOptFn {
+	return func(c Client) Client {
+		c.headers = append(c.headers, kvPair{key: "Content-Type", value: cType})
+		return c
+	}
+}
+
 // WithEncoder sets the encode func for the client.
 func WithEncoder(fn EncodeFn) ClientOptFn {
 	return func(c Client) Client {

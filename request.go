@@ -65,6 +65,12 @@ func (r *Request) Body(v interface{}) *Request {
 	return r
 }
 
+// ContentType sets the content type for the outgoing request.
+func (r *Request) ContentType(cType string) *Request {
+	r.headers = append(r.headers, kvPair{key: "Content-Type", value: cType})
+	return r
+}
+
 // Decode sets the decoder func for the Request.
 func (r *Request) Decode(fn DecodeFn) *Request {
 	r.decodeFn = fn
