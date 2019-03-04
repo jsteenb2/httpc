@@ -44,24 +44,105 @@ func TestClient_Req(t *testing.T) {
 			}
 		})
 
-		t.Run("DELETE", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusNoContent), nil
-			}
+		t.Run("Connect", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusNoContent)
 
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Connect("/foo").
 				Success(httpc.StatusNoContent()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Delete", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusNoContent)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Delete("/foo").
+				Success(httpc.StatusNoContent()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Get", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Get("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Head", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Head("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Options", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Options("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Patch", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Patch("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Post", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Post("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+		})
+
+		t.Run("Put", func(t *testing.T) {
+			doer := newHappyDoer(http.StatusOK)
+
+			client := httpc.New(doer)
+
+			err := client.
+				Put("/foo").
+				Success(httpc.StatusOK()).
 				Do(context.TODO())
 			mustNoError(t, err)
 		})
 	})
 
 	t.Run("with response body", func(t *testing.T) {
-		t.Run("GET", func(t *testing.T) {
+		t.Run("Get", func(t *testing.T) {
 			doer := new(fakeDoer)
 			expected := foo{Name: "Name"}
 			doer.doFn = func(r *http.Request) (*http.Response, error) {
@@ -74,18 +155,18 @@ func TestClient_Req(t *testing.T) {
 
 			var fooResp foo
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Success(httpc.StatusOK()).
 				Decode(httpc.JSONDecode(&fooResp)).
 				Do(context.TODO())
 			mustNoError(t, err)
 
-			expected.Method = "GET"
+			expected.Method = http.MethodGet
 			equals(t, expected, fooResp)
 		})
 
 		t.Run("with request body", func(t *testing.T) {
-			t.Run("POST", func(t *testing.T) {
+			t.Run("Post", func(t *testing.T) {
 				doer := newEchoDoer(t, http.StatusOK)
 
 				client := httpc.New(doer)
@@ -93,18 +174,18 @@ func TestClient_Req(t *testing.T) {
 				expected := foo{Name: "name", S: "string"}
 				var fooResp foo
 				err := client.
-					POST("/foo").
+					Post("/foo").
 					Body(expected).
 					Success(httpc.StatusOK()).
 					Decode(httpc.JSONDecode(&fooResp)).
 					Do(context.TODO())
 				mustNoError(t, err)
 
-				expected.Method = "POST"
+				expected.Method = http.MethodPost
 				equals(t, expected, fooResp)
 			})
 
-			t.Run("PATCH", func(t *testing.T) {
+			t.Run("Patch", func(t *testing.T) {
 				doer := newEchoDoer(t, http.StatusOK)
 
 				client := httpc.New(doer)
@@ -112,18 +193,18 @@ func TestClient_Req(t *testing.T) {
 				expected := foo{Name: "name", S: "string"}
 				var fooResp foo
 				err := client.
-					PATCH("/foo").
+					Patch("/foo").
 					Body(expected).
 					Success(httpc.StatusOK()).
 					Decode(httpc.JSONDecode(&fooResp)).
 					Do(context.TODO())
 				mustNoError(t, err)
 
-				expected.Method = "PATCH"
+				expected.Method = http.MethodPatch
 				equals(t, expected, fooResp)
 			})
 
-			t.Run("PUT", func(t *testing.T) {
+			t.Run("Put", func(t *testing.T) {
 				doer := newEchoDoer(t, http.StatusOK)
 
 				client := httpc.New(doer)
@@ -131,14 +212,14 @@ func TestClient_Req(t *testing.T) {
 				expected := foo{Name: "name", S: "string"}
 				var fooResp foo
 				err := client.
-					PUT("/foo").
+					Put("/foo").
 					Body(expected).
 					Success(httpc.StatusOK()).
 					Decode(httpc.JSONDecode(&fooResp)).
 					Do(context.TODO())
 				mustNoError(t, err)
 
-				expected.Method = "PUT"
+				expected.Method = http.MethodPut
 				equals(t, expected, fooResp)
 			})
 		})
@@ -146,14 +227,11 @@ func TestClient_Req(t *testing.T) {
 
 	t.Run("with query params", func(t *testing.T) {
 		t.Run("without duplicates", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer)
 
-			req := client.GET("/foo").Success(httpc.StatusOK())
+			req := client.Get("/foo").Success(httpc.StatusOK())
 
 			for i := 'A'; i <= 'Z'; i++ {
 				req = req.QueryParam(string(i), string(i+26))
@@ -173,15 +251,12 @@ func TestClient_Req(t *testing.T) {
 
 		t.Run("with dpulicates", func(t *testing.T) {
 			t.Run("duplicate entries last entry wins", func(t *testing.T) {
-				doer := new(fakeDoer)
-				doer.doFn = func(req *http.Request) (*http.Response, error) {
-					return stubResp(http.StatusOK), nil
-				}
+				doer := newHappyDoer(http.StatusOK)
 
 				client := httpc.New(doer)
 
 				err := client.
-					GET("/foo").
+					Get("/foo").
 					QueryParam("dupe", "val1").
 					QueryParam("dupe", "val2").
 					Success(httpc.StatusOK()).
@@ -197,15 +272,12 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("ignores unfulfilled pairs", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(req *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusOK), nil
-			}
+			doer := newHappyDoer(http.StatusOK)
 
 			client := httpc.New(doer)
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				QueryParams("q1", "v1", "q2").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
@@ -232,7 +304,7 @@ func TestClient_Req(t *testing.T) {
 		expected := foo{Name: "name", S: "string"}
 		var fooResp foo
 		err := client.
-			GET("/foo").
+			Get("/foo").
 			Body(expected).
 			Success(httpc.StatusOK()).
 			Decode(httpc.GobDecode(&fooResp)).
@@ -255,7 +327,7 @@ func TestClient_Req(t *testing.T) {
 
 		var actual bar
 		err := client.
-			DELETE("/foo").
+			Delete("/foo").
 			Success(httpc.StatusNoContent()).
 			OnError(httpc.JSONDecode(&actual)).
 			Do(context.TODO())
@@ -273,15 +345,12 @@ func TestClient_Req(t *testing.T) {
 
 	t.Run("retry", func(t *testing.T) {
 		t.Run("sets retry", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusInternalServerError), nil
-			}
+			doer := newHappyDoer(http.StatusInternalServerError)
 
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Retry(httpc.RetryStatus(httpc.StatusNotIn(http.StatusOK))).
 				Retry(httpc.RetryStatus(httpc.StatusNotIn(http.StatusNoContent, http.StatusNotFound))).
@@ -292,15 +361,12 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("does not set retry", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(request *http.Request) (*http.Response, error) {
-				return stubResp(http.StatusUnprocessableEntity), nil
-			}
+			doer := newHappyDoer(http.StatusUnprocessableEntity)
 
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Retry(httpc.RetryStatus(httpc.StatusNotIn(http.StatusUnprocessableEntity))).
 				Do(context.TODO())
@@ -310,16 +376,13 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("applies backoff on retry", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusNotFound), nil
-			}
+			doer := newHappyDoer(http.StatusNotFound)
 
 			boffer := httpc.NewConstantBackoff(time.Nanosecond, 3)
 			client := httpc.New(doer, httpc.WithBackoff(boffer))
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Retry(httpc.RetryStatus(httpc.StatusNotFound())).
 				Do(context.TODO())
@@ -330,16 +393,13 @@ func TestClient_Req(t *testing.T) {
 		})
 
 		t.Run("does not backoff on non retry error", func(t *testing.T) {
-			doer := new(fakeDoer)
-			doer.doFn = func(*http.Request) (*http.Response, error) {
-				return stubResp(http.StatusInternalServerError), nil
-			}
+			doer := newHappyDoer(http.StatusInternalServerError)
 
 			boffer := httpc.NewConstantBackoff(time.Nanosecond, 10)
 			client := httpc.New(doer, httpc.WithBackoff(boffer))
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Retry(httpc.RetryStatus(httpc.StatusNotFound())).
 				Do(context.TODO())
@@ -360,7 +420,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer, httpc.WithBackoff(boffer))
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Retry(httpc.RetryResponseError(func(e error) error {
 					return &fakeRetryErr{e}
@@ -383,7 +443,7 @@ func TestClient_Req(t *testing.T) {
 
 		var count int
 		err := client.
-			DELETE("/foo").
+			Delete("/foo").
 			Success(httpc.StatusOK()).
 			Retry(httpc.RetryResponseError(func(e error) error {
 				count++
@@ -409,7 +469,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer, opts...)
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
 			mustNoError(t, err)
@@ -432,7 +492,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer, httpc.WithHeader("key", "value"))
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Header("key", "new value").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
@@ -454,7 +514,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			req := client.
-				GET("/foo")
+				Get("/foo")
 
 			for i := 'A'; i <= 'Z'; i++ {
 				req = req.Header(string(i), string(i+26))
@@ -482,7 +542,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Header("dupe", "val1").
 				Header("dupe", "val2").
 				Success(httpc.StatusOK()).
@@ -507,7 +567,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer, httpc.WithContentType("application/json"))
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
 			mustNoError(t, err)
@@ -528,7 +588,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				ContentType("application/json").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
@@ -550,7 +610,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer, httpc.WithContentType("text/html"))
 
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				ContentType("application/json").
 				Success(httpc.StatusOK()).
 				Do(context.TODO())
@@ -574,7 +634,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				NotFound(httpc.StatusNotFound()).
 				Do(context.TODO())
@@ -592,7 +652,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				NotFound(httpc.StatusNotFound()).
 				Do(context.TODO())
@@ -612,7 +672,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Exists(httpc.StatusUnprocessableEntity()).
 				Do(context.TODO())
@@ -630,7 +690,7 @@ func TestClient_Req(t *testing.T) {
 			client := httpc.New(doer)
 
 			err := client.
-				DELETE("/foo").
+				Delete("/foo").
 				Success(httpc.StatusNoContent()).
 				Exists(httpc.StatusUnprocessableEntity()).
 				Do(context.TODO())
@@ -656,7 +716,7 @@ func TestClient_Req(t *testing.T) {
 
 			var actual foo
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Success(httpc.StatusOK()).
 				Decode(httpc.JSONDecode(&actual)).
 				Do(context.TODO())
@@ -677,7 +737,7 @@ func TestClient_Req(t *testing.T) {
 
 			var actual foo
 			err := client.
-				GET("/foo").
+				Get("/foo").
 				Success(httpc.StatusOK()).
 				Decode(httpc.JSONDecode(&actual)).
 				Do(context.TODO())
@@ -755,6 +815,14 @@ func (f *fakeDoer) Do(r *http.Request) (*http.Response, error) {
 	f.args = append(f.args, r)
 	f.doCallCount++
 	return f.doFn(r)
+}
+
+func newHappyDoer(status int) *fakeDoer {
+	doer := new(fakeDoer)
+	doer.doFn = func(req *http.Request) (*http.Response, error) {
+		return stubResp(status), nil
+	}
+	return doer
 }
 
 func newEchoDoer(t *testing.T, status int) *fakeDoer {

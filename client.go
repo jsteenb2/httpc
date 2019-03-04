@@ -38,28 +38,43 @@ func New(doer Doer, opts ...ClientOptFn) *Client {
 	return &c
 }
 
-// DELETE makes a delete request.
-func (c *Client) DELETE(addr string) *Request {
+// Connect makes a connect http request.
+func (c *Client) Connect(addr string) *Request {
+	return c.Req(http.MethodConnect, addr)
+}
+
+// Delete makes a delete http request.
+func (c *Client) Delete(addr string) *Request {
 	return c.Req(http.MethodDelete, addr)
 }
 
-// GET makes a get request.
-func (c *Client) GET(addr string) *Request {
+// Get makes a get http request.
+func (c *Client) Get(addr string) *Request {
 	return c.Req(http.MethodGet, addr)
 }
 
-// PATCH makes a patch request.
-func (c *Client) PATCH(addr string) *Request {
+// HEAD makes a head http request.
+func (c *Client) Head(addr string) *Request {
+	return c.Req(http.MethodHead, addr)
+}
+
+// Options makes a options http request.
+func (c *Client) Options(addr string) *Request {
+	return c.Req(http.MethodOptions, addr)
+}
+
+// Patch makes a patch http request.
+func (c *Client) Patch(addr string) *Request {
 	return c.Req(http.MethodPatch, addr)
 }
 
-// POST makes a post request.
-func (c *Client) POST(addr string) *Request {
+// Post makes a post http request.
+func (c *Client) Post(addr string) *Request {
 	return c.Req(http.MethodPost, addr)
 }
 
-// PUT makes a put request.
-func (c *Client) PUT(addr string) *Request {
+// Put makes a put http request.
+func (c *Client) Put(addr string) *Request {
 	return c.Req(http.MethodPut, addr)
 }
 
