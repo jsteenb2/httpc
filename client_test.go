@@ -227,7 +227,7 @@ func TestClient_Req(t *testing.T) {
 			}, nil
 		}
 
-		client := httpc.New(doer, httpc.WithEncode(httpc.GobEncode()))
+		client := httpc.New(doer, httpc.WithEncoder(httpc.GobEncode()))
 
 		expected := foo{Name: "name", S: "string"}
 		var fooResp foo
@@ -396,6 +396,55 @@ func TestClient_Req(t *testing.T) {
 	})
 
 	t.Run("headers", func(t *testing.T) {
+		t.Run("client headers set on req", func(t *testing.T) {
+			doer := new(fakeDoer)
+			doer.doFn = func(req *http.Request) (*http.Response, error) {
+				return stubResp(http.StatusOK), nil
+			}
+
+			var opts []httpc.ClientOptFn
+			for i := 'A'; i <= 'Z'; i++ {
+				opts = append(opts, httpc.WithHeader(string(i), string(i+26)))
+			}
+			client := httpc.New(doer, opts...)
+
+			err := client.
+				GET("/foo").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			for i := 'A'; i <= 'Z'; i++ {
+				equals(t, string(i+26), headers.Get(string(i)))
+			}
+		})
+
+		t.Run("request header overwrites a client header", func(t *testing.T) {
+			doer := new(fakeDoer)
+			doer.doFn = func(req *http.Request) (*http.Response, error) {
+				return stubResp(http.StatusOK), nil
+			}
+
+			client := httpc.New(doer, httpc.WithHeader("key", "value"))
+
+			err := client.
+				GET("/foo").
+				Header("key", "new value").
+				Success(httpc.StatusOK()).
+				Do(context.TODO())
+			mustNoError(t, err)
+
+			mustEquals(t, 1, len(doer.args))
+			httpReq := doer.args[0]
+			headers := httpReq.Header
+
+			equals(t, "new value", headers.Get("key"))
+		})
+
 		t.Run("non duplicates", func(t *testing.T) {
 			doer := new(fakeDoer)
 			doer.doFn = func(req *http.Request) (*http.Response, error) {

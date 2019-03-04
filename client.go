@@ -17,6 +17,8 @@ type Client struct {
 	baseURL string
 	doer    Doer
 
+	headers []kvPair
+
 	authFn   AuthFn
 	encodeFn EncodeFn
 	backoff  BackoffOptFn
@@ -70,6 +72,7 @@ func (c *Client) Req(method, addr string) *Request {
 	return &Request{
 		Method:   method,
 		Addr:     address,
+		headers:  c.headers,
 		doer:     c.doer,
 		authFn:   c.authFn,
 		encodeFn: c.encodeFn,

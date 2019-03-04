@@ -30,10 +30,18 @@ func WithBaseURL(baseURL string) ClientOptFn {
 	}
 }
 
-// WithEncode sets the encode func for the client.
-func WithEncode(fn EncodeFn) ClientOptFn {
+// WithEncoder sets the encode func for the client.
+func WithEncoder(fn EncodeFn) ClientOptFn {
 	return func(c Client) Client {
 		c.encodeFn = fn
+		return c
+	}
+}
+
+// WithHeader sets headers that will be applied to all requests.
+func WithHeader(key, value string) ClientOptFn {
+	return func(c Client) Client {
+		c.headers = append(c.headers, kvPair{key: key, value: value})
 		return c
 	}
 }
