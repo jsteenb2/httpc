@@ -77,6 +77,11 @@ func (r *Request) Decode(fn DecodeFn) *Request {
 	return r
 }
 
+// DecodeJSON is a shorthand for decoding JSON response body.
+func (r *Request) DecodeJSON(v interface{}) *Request {
+	return r.Decode(JSONDecode(v))
+}
+
 // Exists appends a exists func to the Request.
 func (r *Request) Exists(fn StatusFn) *Request {
 	r.existsFns = append(r.existsFns, fn)
@@ -190,7 +195,7 @@ func (r *Request) do(ctx context.Context) error {
 	if len(r.params) > 0 {
 		params := req.URL.Query()
 		for _, kv := range r.params {
-			params.Set(kv.key, kv.value)
+			params.Add(kv.key, kv.value)
 		}
 		req.URL.RawQuery = params.Encode()
 	}
